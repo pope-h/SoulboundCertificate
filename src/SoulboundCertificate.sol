@@ -31,10 +31,7 @@ contract SoulboundCertificate is ERC721URIStorage, AccessControl {
      * @dev Add multiple addresses to the whitelist
      * @param addresses Array of addresses to whitelist
      */
-    function addToWhitelist(address[] memory addresses)
-        public
-        onlyRole(ADMIN_ROLE)
-    {
+    function addToWhitelist(address[] memory addresses) public onlyRole(ADMIN_ROLE) {
         for (uint256 i = 0; i < addresses.length; i++) {
             grantRole(WHITELIST_ROLE, addresses[i]);
         }
@@ -44,10 +41,7 @@ contract SoulboundCertificate is ERC721URIStorage, AccessControl {
      * @dev Remove multiple addresses from the whitelist
      * @param addresses Array of addresses to remove from whitelist
      */
-    function removeFromWhitelist(address[] memory addresses)
-        public
-        onlyRole(ADMIN_ROLE)
-    {
+    function removeFromWhitelist(address[] memory addresses) public onlyRole(ADMIN_ROLE) {
         for (uint256 i = 0; i < addresses.length; i++) {
             revokeRole(WHITELIST_ROLE, addresses[i]);
         }
@@ -58,21 +52,17 @@ contract SoulboundCertificate is ERC721URIStorage, AccessControl {
      * @param tokenURI URI for the token metadata
      * @return The newly minted token ID
      */
-    function mintCertificate(string memory tokenURI)
-        public
-        onlyRole(WHITELIST_ROLE)
-        returns (uint256)
-    {
+    function mintCertificate(string memory tokenURI) public onlyRole(WHITELIST_ROLE) returns (uint256) {
         require(!_hasMinted[msg.sender], "Address has already minted a certificate");
-        
+
         _tokenIds++;
         uint256 newTokenId = _tokenIds;
-        
+
         _safeMint(msg.sender, newTokenId);
         _setTokenURI(newTokenId, tokenURI);
-        
+
         _hasMinted[msg.sender] = true;
-        
+
         return newTokenId;
     }
 
@@ -80,22 +70,14 @@ contract SoulboundCertificate is ERC721URIStorage, AccessControl {
      * @dev Burn a certificate NFT
      * @param tokenId The token ID to burn
      */
-    function burnCertificate(uint256 tokenId)
-        public
-        onlyRole(ADMIN_ROLE)
-    {
+    function burnCertificate(uint256 tokenId) public onlyRole(ADMIN_ROLE) {
         _burn(tokenId);
     }
 
     /**
      * @dev Override _update to enforce soulbound property
      */
-    function _update(address to, uint256 tokenId, address auth)
-        internal
-        virtual
-        override
-        returns (address)
-    {
+    function _update(address to, uint256 tokenId, address auth) internal virtual override returns (address) {
         address from = _ownerOf(tokenId);
         if (from != address(0) && to != address(0)) {
             emit TransferAttemptPrevented(from, to, tokenId);
@@ -107,11 +89,7 @@ contract SoulboundCertificate is ERC721URIStorage, AccessControl {
     /**
      * @dev Prevent token transfers to enforce soulbound property
      */
-    function transferFrom(address from, address to, uint256 tokenId)
-        public
-        virtual
-        override(ERC721, IERC721)
-    {
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721, IERC721) {
         if (from != address(0) && to != address(0)) {
             emit TransferAttemptPrevented(from, to, tokenId);
             revert("Soulbound: Transfers are not allowed");
